@@ -1,5 +1,7 @@
 package dbase
 
+import "time"
+
 
 type Vac struct {
 	ID      string `bson:"_id"`
@@ -9,4 +11,5 @@ type Vac struct {
 	URL     string `bson:"URL"` //change on url
 	Salary  string `bson:"Salary"`
 	Info    string `bson:"Info"`
+	ExpireAt *time.Time `bson:"expireAt,omitempty"`
 }

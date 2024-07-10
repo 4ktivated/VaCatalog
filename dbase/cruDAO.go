@@ -3,9 +3,11 @@ package dbase
 import (
 	"context"
 	"some_code/apperror"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type VacsDAO struct {
@@ -13,9 +15,21 @@ type VacsDAO struct {
 }
 
 func NewVacsDAO(ctx context.Context, client * mongo.Client, collection string) (*VacsDAO, error) {
-	return &VacsDAO{
-		c: client.Database("vacpars").Collection(collection),
-	}, nil
+	dao := &VacsDAO{
+		c: client.Database("core").Collection("shortUrls"),
+	}
+	if err := dao.createIndices(ctx); err != nil {
+		return nil, err
+	}
+	return dao, nil
+}
+
+func (dao *VacsDAO) createIndices(ctx context.Context) error {
+	_, err := dao.c.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "expireAt", Value: 1}},
+		Options: options.Index().SetExpireAfterSeconds(0),
+	})
+	return err
 }
 
 func (dao *VacsDAO) InsertVacs(ctx context.Context, vacs []*Vac) error{
