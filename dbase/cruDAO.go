@@ -32,7 +32,7 @@ func (dao *VacsDAO) createIndices(ctx context.Context) error {
 	return err
 }
 
-func (dao *VacsDAO) InsertVacs(ctx context.Context, vacs []*Vac) error{
+func (dao *VacsDAO) InsertVacs(ctx context.Context, vacs []*Vac) error {
 
 	IMvacs := make([]interface{}, len(vacs))
 	for i, vac := range vacs {
@@ -42,7 +42,7 @@ func (dao *VacsDAO) InsertVacs(ctx context.Context, vacs []*Vac) error{
 	return err
 }
 
-func (dao *VacsDAO) FindbyLang(ctx context.Context, lang string)(*Vac, error){
+func (dao *VacsDAO) FindbyLang(ctx context.Context, lang string) (*Vac, error) {
 	filter := bson.D{{Key: "lang", Value: lang}}
 	var vac Vac
 	err := dao.c.FindOne(ctx, filter).Decode(&vac)
@@ -55,3 +55,4 @@ func (dao *VacsDAO) FindbyLang(ctx context.Context, lang string)(*Vac, error){
 		return nil, err
 	}
 }
+
