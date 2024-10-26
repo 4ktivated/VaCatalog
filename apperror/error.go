@@ -1,5 +1,6 @@
 package apperror
 
+
 import "errors"
 
 var (
