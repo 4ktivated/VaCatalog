@@ -46,7 +46,6 @@ func (s *Service) Main_Page(ctx context.Context, url string, ttlDays int) (*dbas
 	return nil, apperror.ErrCollision
 }
 
-
 func (s *Service) GetbyLang(ctx context.Context, Vac string) (string, error) {
 	sURL, err := s.VacsDAO.FindbyLang(ctx, Vac)
 	if err != nil {
@@ -54,8 +53,6 @@ func (s *Service) GetbyLang(ctx context.Context, Vac string) (string, error) {
 	}
 	return sURL.URL, nil
 }
-
-
 
 var symbols = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 

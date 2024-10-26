@@ -1,6 +1,5 @@
 package app
 
-
 import (
 	"encoding/json"
 	"fmt"
