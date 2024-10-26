@@ -7,8 +7,9 @@ import (
 	"net/url"
 )
 
-func HHparser(text string, area string, page string, per_page string) map[string]interface{} {
 
+func HHparser(text string, area string, page string, per_page string) map[string]interface{} {
+	
 	var data map[string]interface{}
 
 	params := url.Values{}
@@ -16,6 +17,7 @@ func HHparser(text string, area string, page string, per_page string) map[string
 	params.Add("area", area)
 	params.Add("page", page)
 	params.Add("per_page", per_page)
+
 
 	path, err := url.Parse("https://api.hh.ru/vacancies")
 	if err != nil {
@@ -33,7 +35,7 @@ func HHparser(text string, area string, page string, per_page string) map[string
 	if err != nil {
 		panic(err)
 	}
-
+	
 	json.Unmarshal(body, &data)
 	return data
 }
