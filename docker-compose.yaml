@@ -1,0 +1,37 @@
+version: '-0.1'
+services:
+    postgres:
+        image: postgres
+        container_name: some_psql
+        environment:
+            - POSTGRES_PORT=${DB_PORT}
+            - POSTGRES_USER=${DB_USER}
+            - POSTGRES_PASSWORD=${DB_PASS}
+            - POSTGRES_DB=${DB_NAME}
+        ports:
+            - '5454:5454'
+        volumes:
+            - /home/linux_enjoyer/highload/some_code/src/volumes
+        networks:
+            - internal
+    some_app:
+        container_name: some_app
+        build:
+            context: .
+            dockerfile: Dockerfile
+        command: bash -c "go build && ./some_app"
+        volumes:
+            - './app:/src/volumes'
+        expose:
+            - ${APP_PORT}:${APP_PORT}
+        depends_on:
+            - postgres
+        networks:
+            - internal
+        stdin_open: true
+volumes:
+    db:
+    server:
+networks:
+    internal:
+        driver: bridge
