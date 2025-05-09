@@ -9,10 +9,6 @@ import (
 	"some_app/internal/repository"
 )
 
-//сделать "динамический раутинг"
-//что пришло оно ищет и отдаёт типо свич кейс или хз что
-//но думаю это может бысть отельный файл
-
 func SuckLie(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "suck lie")
 }

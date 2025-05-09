@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	govacserver "some_app/internal/api/http"
+	shed "some_app/internal/scheduler"
+	"some_app/pkg/parser"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -16,6 +18,10 @@ func main() {
 
 	logger, err := initLogger()
 	printErrorAndExit(err)
+
+	//init pool os parsers
+
+	prserClient := parser.NewParseClient()
 
 	wg := sync.WaitGroup{}
 
@@ -40,6 +46,12 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		sheduler := shed.NewShedilerPars(prserClient)
+		err := sheduler.InitSync()
+		if err != nil {
+			logger.Error("cant sync vacancy for the first time")
+		}
+		sheduler.RunSync()
 		fmt.Println("sync vac if app start")
 	}()
 

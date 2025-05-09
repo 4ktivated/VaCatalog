@@ -7,24 +7,30 @@ import (
 	"some_app/internal/repository"
 )
 
-
-//храним параметры опции запроса в базе 
+//храним параметры опции запроса в базе
 //"https://api.hh.ru/vacancies"
 // params.Add("text", lang)
 // params.Add("page", page)
 // params.Add("per_page", per_page)
 
-type HTTPParseClient struct{
-	title string
+type goodBoyParser interface {
+	recvData()
+	sendData()
+	Parse()
 }
 
-func NewHTTPParseClient(title string) *HTTPParseClient {
-	return &HTTPParseClient{title}
+type ParseClient struct {
+	pool []*goodBoyParser
 }
 
+func NewParseClient(pool []*goodBoyParser) *ParseClient {
+	return &ParseClient{
+		pool: pool,
+	}
+}
 
-func (h *HTTPParseClient) recvData(title string) (*http.Response, error) {
-	
+func (h *ParseClient) recvData(title string) (*http.Response, error) {
+
 	data := repository.Data{}
 	UP, err := data.GetOptUrl("hh")
 	if err != nil {
@@ -51,9 +57,7 @@ func (h *HTTPParseClient) recvData(title string) (*http.Response, error) {
 	return response, nil
 }
 
-func (h *HTTPParseClient) SendData() (*http.Response, error) {//TODO: зачем я это сделал?
+func (h *ParseClient) sendData() (*http.Response, error) { //TODO: зачем я это сделал?
 	var response *http.Response
 	return response, nil
 }
-
-

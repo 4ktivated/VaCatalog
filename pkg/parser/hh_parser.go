@@ -6,18 +6,12 @@ import (
 	"net/http"
 )
 
-type ParserInter interface {
-	recvData() (*http.Response, error)
-	sendData(Vacs) error
-	Parse() (Vacs, error)
-}
-
 // HHstruct
 // TODO: сделать структуру для парсера, подумать хранить ли данныне в парсере
 // или парсер будет производить данные а сам лишь хранить данные для запроса
 type HHparser struct {
 	params map[string]string // может вынести парметры в файл с конфигом что бы туда давболять и они мапились
-	data   int // под вопросов
+	data   int               // под вопросов
 }
 
 func NewHHparser(params map[string]string) *HHparser {
@@ -27,7 +21,7 @@ func NewHHparser(params map[string]string) *HHparser {
 type HHoutData struct {
 	// Url    string
 	// Params map[string]string
-	Items  Vacs `json:"items"`
+	Items Vacs `json:"items"`
 }
 
 type Vacs []Vac
@@ -80,3 +74,4 @@ func (*HHparser) recvData() (*http.Response, error) {
 func (*HHparser) sendData(vacs Vacs) error {
 	return nil
 }
+
