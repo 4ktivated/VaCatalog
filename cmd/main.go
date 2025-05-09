@@ -2,28 +2,62 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
-	app "some_app/internal/api/http"
+	govacserver "some_app/internal/api/http"
+	"sync"
 
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
-	}
+func main() {
+	err := godotenv.Load()
+	printErrorAndExit(err)
+
+	logger, err := initLogger()
+	printErrorAndExit(err)
+
+	wg := sync.WaitGroup{}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		addr := os.Getenv("APP_ADDR")
+		if addr == "" {
+			addr = "0.0.0.0"
+		}
+
+		port := os.Getenv("APP_PORT")
+		if port == "" {
+			port = "8000"
+		}
+
+		fmt.Printf("Starting server on %s:%s\n", addr, port)
+		server := govacserver.NewGoVacServer(logger)
+		server.ListenAndServe(fmt.Sprintf("%s:%s", addr, port))
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fmt.Println("sync vac if app start")
+	}()
+
+	wg.Wait()
 }
 
-func main() {
-	addr, exists := os.LookupEnv("APP_ADDR")
-	if !exists {
-		log.Fatal("no addr")
+func initLogger() (*zap.SugaredLogger, error) {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		return nil, fmt.Errorf("cant create logger error :%w", err)
 	}
-	port, exists := os.LookupEnv("APP_PORT")
-	if !exists {
-		log.Fatal("no port")
-	}
+	return logger.Sugar(), nil
 
-	app.Run(fmt.Sprintf("%s:%s",addr, port))
+}
+
+func printErrorAndExit(err error) {
+	if err != nil {
+		fmt.Printf("Error init: %s.\nFor help use -h\n", err)
+		os.Exit(1)
+	}
 }
