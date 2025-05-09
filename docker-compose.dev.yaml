@@ -1,0 +1,31 @@
+version: '0.1'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_PORT: ${DB_PORT:-5432}
+      POSTGRES_USER: ${DB_USER:-vacatalog}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-vacatalog}
+      POSTGRES_DB: ${DB_NAME:-vacatalog_db}
+    ports:
+      - "${DB_PORT:-5454}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  internal:
+    driver: bridge
