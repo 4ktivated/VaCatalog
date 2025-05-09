@@ -1,15 +1,54 @@
 package parser
 
-import "context"
+import (
+	"fmt"
+	"net/http"
+	"sync"
+)
 
-type Parser[P any] interface {
-	Pars()
+type Parser interface {
+	Pars() (*Vacs, error)
+	recvData() (*http.Response, error)
 }
 
-func Processing[S any](ctx context.Context, ops ...Executable[S]) error {
-	for _, op := range ops {
-		// do parse stuff
+// type Service[A any, S any] interface {
+// 	Run(ctx context.Context) (*Vacs, error)
+// }
+//
+// type Operation[A any, S any] struct {
+// 	Repository repository.Data
+// 	Service    Service[A, S]
+// }
+
+// func (o *Operation[A, S]) Pars(ctx context.Context) (*Vacs, error) {
+// 	vacs, err := o.Service.Run(ctx)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("cant run process parser: %w", err)
+// 	}
+// 	return vacs, nil
+// }
+
+func Processing(parsers []Parser) {
+	vacToRepo := make(chan Vac, 200)
+
+	var wg sync.WaitGroup
+	for _, op := range parsers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			vacs, err := op.Pars()
+			if err != nil {
+				return
+			}
+			for _, vac := range *vacs {
+				vacToRepo <- vac
+			}
+
+		}()
 	}
 
-	return nil
+	for vac := range vacToRepo {
+		fmt.Printf("put vac in db: %v", vac)
+	}
+	wg.Wait()
 }

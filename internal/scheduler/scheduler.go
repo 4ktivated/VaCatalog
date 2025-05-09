@@ -1,9 +1,11 @@
 package scheduler
 
 import (
-	"fmt"
+	"context"
 	"some_app/pkg/parser"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type Scheduler interface {
@@ -13,45 +15,40 @@ type Scheduler interface {
 }
 
 type ShedulerPars struct {
+	logger      zap.SugaredLogger
 	parseClient *parser.ParseClient
 }
 
-func NewShedilerPars(parseClient *parser.ParseClient) *ShedulerPars {
+func NewShedilerPars(logger zap.SugaredLogger, parseClient *parser.ParseClient) *ShedulerPars {
 	return &ShedulerPars{
 		parseClient: parseClient,
 	}
 }
 
 // TODO: подумать над планировщиком
-func (s *ShedulerPars) RunSync() {
-	client := parser.NewParseClient()
+func (s *ShedulerPars) RunSync(ctx context.Context) {
 
-	ticker := time.NewTicker(20 * time.Second)
-	done := make(chan bool)
-
-	go func() {
-		for {
-			select {
-			case <-done:
-				return
-			case t := <-ticker.C:
-				client.HHparser()
-				fmt.Println("Tick at", t)
-			}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(8 * time.Hour):
 		}
-	}()
 
-	time.Sleep(1600 * time.Millisecond)
-	ticker.Stop()
-	done <- true
-	fmt.Println("Ticker stopped")
+		err := s.SyncOnce()
+		if err != nil {
+			s.logger.Error("can't sync stores, changes will be skipped", zap.Error(err))
+		}
+	}
 }
 
-func (s *ShedulerPars) InitSync() error {
-	//do somthing
+func (s *ShedulerPars) SyncOnce() error {
+	go func() {
+		s.sync()
+	}()
 	return nil
 }
 
-func sync() {
-	// do somthing
+func (s *ShedulerPars) sync() {
+	parser.Processing(s.parseClient.GetPool())
 }

@@ -2,29 +2,30 @@ package parser
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	curl "net/url"
 )
 
-// HHstruct
-// TODO: сделать структуру для парсера, подумать хранить ли данныне в парсере
-// или парсер будет производить данные а сам лишь хранить данные для запроса
+const url = "https://api.hh.ru/vacancies"
+
+// TODO: Протестировать параметры, потому что по сути вносить то надо только языки как я понял
+var param = map[string]string{"text": "php", "page": "1", "per_page": "100"}
+
 type HHparser struct {
-	params map[string]string // может вынести парметры в файл с конфигом что бы туда давболять и они мапились
-	data   int               // под вопросов
+	langs []string
 }
 
-func NewHHparser(params map[string]string) *HHparser {
-	return &HHparser{params: params}
-}
-
-type HHoutData struct {
-	// Url    string
-	// Params map[string]string
-	Items Vacs `json:"items"`
+func NewHHparser(langs []string) *HHparser {
+	return &HHparser{langs: langs}
 }
 
 type Vacs []Vac
+
+type HHoutData struct {
+	Items Vacs `json:"items"`
+}
 
 type Vac struct {
 	ID      string   `json:"id"`
@@ -50,11 +51,15 @@ type Snippet struct {
 	Info string `json:"responsibility"`
 }
 
-// TODO: соеднить слои приложения как описаннов обсидиане
-func (*HHparser) Parse(response *http.Response) (Vacs, error) {
+func (h *HHparser) Pars() (*Vacs, error) {
 	var bodyResponse *HHoutData
 
-	body, err := io.ReadAll(response.Body)
+	resp, err := h.recvData()
+	if err != nil {
+		return nil, fmt.Errorf("cant get recv data error: %w", err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -64,14 +69,28 @@ func (*HHparser) Parse(response *http.Response) (Vacs, error) {
 		return nil, err
 	}
 
-	return bodyResponse.Items, nil
+	return &bodyResponse.Items, nil
 }
 
-func (*HHparser) recvData() (*http.Response, error) {
-	return nil, nil
-}
+func (h *HHparser) recvData() (*http.Response, error) {
 
-func (*HHparser) sendData(vacs Vacs) error {
-	return nil
-}
+	params := curl.Values{}
+	for prm, val := range param {
+		params.Add(prm, val)
+	}
 
+	path, err := curl.Parse(url)
+	if err != nil {
+		return nil, err
+	}
+	path.RawQuery = params.Encode()
+
+	response, err := http.Get(path.String())
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	return response, nil
+
+}

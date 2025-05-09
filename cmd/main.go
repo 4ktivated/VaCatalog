@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	govacserver "some_app/internal/api/http"
@@ -13,6 +14,9 @@ import (
 )
 
 func main() {
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	fmt.Println(cancelFunc) //TODO: что-то с жтимм сделать
+
 	err := godotenv.Load()
 	printErrorAndExit(err)
 
@@ -20,8 +24,9 @@ func main() {
 	printErrorAndExit(err)
 
 	//init pool os parsers
+	hhParser := parser.NewHHparser([]string{"php", "python", "golang"})
 
-	prserClient := parser.NewParseClient()
+	prserClient := parser.NewParseClient(hhParser)
 
 	wg := sync.WaitGroup{}
 
@@ -46,13 +51,12 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		sheduler := shed.NewShedilerPars(prserClient)
-		err := sheduler.InitSync()
+		sheduler := shed.NewShedilerPars(*logger, prserClient)
+		err := sheduler.SyncOnce()
 		if err != nil {
 			logger.Error("cant sync vacancy for the first time")
 		}
-		sheduler.RunSync()
-		fmt.Println("sync vac if app start")
+		sheduler.RunSync(ctx)
 	}()
 
 	wg.Wait()
