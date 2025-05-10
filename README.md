@@ -1,6 +1,6 @@
-# GoVaCatalog - Job Vacancy Aggregator
+# VaCatalog - Job Vacancy Aggregator
 
-GoVaCatalog is a powerful job vacancy aggregator that collects and organizes job listings from multiple sources into a single, user-friendly platform. Whether you're a job seeker looking for opportunities or an employer posting positions, GoVaCatalog provides a seamless experience through both web interface and API endpoints.
+VaCatalog is a powerful job vacancy aggregator that collects and organizes job listings from multiple sources into a single, user-friendly platform. Whether you're a job seeker looking for opportunities or an employer posting positions, VaCatalog provides a seamless experience through both web interface and API endpoints.
 
 ## Features
 
@@ -30,8 +30,8 @@ GoVaCatalog is a powerful job vacancy aggregator that collects and organizes job
 1.Clone the repository:
 
 ```bash
-git clone https://github.com/4ktivated/GoVaCatalog.git
-cd GoVaCatalog
+git clone https://github.com/4ktivated/VaCatalog.git
+cd VaCatalog
 ```
 
 2.Install dependencies:
