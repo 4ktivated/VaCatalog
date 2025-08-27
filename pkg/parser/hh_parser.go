@@ -2,16 +2,17 @@ package parser
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	curl "net/url"
+	"sync"
+
+	"go.uber.org/zap"
 )
 
 const url = "https://api.hh.ru/vacancies"
 
-// TODO: Протестировать параметры, потому что по сути вносить то надо только языки как я понял
-var param = map[string]string{"text": "php", "page": "1", "per_page": "100"}
+var param = map[string]string{"text": "", "page": "1", "per_page": "100"}
 
 type HHparser struct {
 	langs []string
@@ -51,25 +52,47 @@ type Snippet struct {
 	Info string `json:"responsibility"`
 }
 
-func (h *HHparser) Pars() (*Vacs, error) {
+func (h *HHparser) Pars(logger *zap.SugaredLogger) *Vacs {
 	var bodyResponse *HHoutData
+	vacCh := make(chan *HHoutData, 200)
+	parsedVac := make(Vacs, len(h.langs))
 
-	resp, err := h.recvData()
-	if err != nil {
-		return nil, fmt.Errorf("cant get recv data error: %w", err)
+	var wg sync.WaitGroup
+	for _, lang := range h.langs {
+		param["text"] = lang
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			resp, err := h.recvData()
+			if err != nil {
+				logger.Error("cant get recv data error", zap.Error(err))
+				return
+			}
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				logger.Error("cant read body", zap.Error(err))
+				return
+			}
+
+			err = json.Unmarshal(body, &bodyResponse)
+			if err != nil {
+				logger.Error("cant unmarshal body", zap.Error(err))
+				return
+			}
+
+			vacCh <- bodyResponse
+		}()
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	wg.Wait()
+
+	close(vacCh)
+	for  data := range vacCh {
+		parsedVac = append(parsedVac, data.Items...)	
 	}
 
-	err = json.Unmarshal(body, &bodyResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	return &bodyResponse.Items, nil
+	return &parsedVac
 }
 
 func (h *HHparser) recvData() (*http.Response, error) {

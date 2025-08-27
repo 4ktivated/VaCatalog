@@ -2,15 +2,16 @@ package repository
 
 type Data struct{}
 
-//TODO: с базы мы берём  "буфер" иа его кже парсим там где нужно во что нужно
+//TODO: с базы мы берём "буфер" и его кже парсим там где нужно во что нужно
 
 type UrlParam struct {
 	Url   string
 	Param map[string]string
 }
 
-// hardcode
+// hardcode url
 var url = "https://api.hh.ru/vacancies"
+// hardcode param
 var param = map[string]string{"text": "php", "page": "1", "per_page": "100"}
 
 func (d *Data) GetDataVac(lang string) ([]byte, error) {

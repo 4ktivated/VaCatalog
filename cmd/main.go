@@ -15,18 +15,22 @@ import (
 
 func main() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	fmt.Println(cancelFunc) //TODO: что-то с жтимм сделать
+	fmt.Printf("this is func: %p\n", cancelFunc) //TODO что-то сделатьс этим
 
-	err := godotenv.Load()
-	printErrorAndExit(err)
+	err := godotenv.Load("cmd/.env")
+	if err != nil {
+		cancelFunc()
+	}
 
 	logger, err := initLogger()
-	printErrorAndExit(err)
+	if err != nil {
+		cancelFunc()
+	}
 
 	//init pool os parsers
 	hhParser := parser.NewHHparser([]string{"php", "python", "golang"})
 
-	prserClient := parser.NewParseClient(hhParser)
+	parserClient := parser.NewParseClient(hhParser)
 
 	wg := sync.WaitGroup{}
 
@@ -45,16 +49,22 @@ func main() {
 
 		fmt.Printf("Starting server on %s:%s\n", addr, port)
 		server := govacserver.NewGoVacServer(logger)
-		server.ListenAndServe(fmt.Sprintf("%s:%s", addr, port))
+		err := server.ListenAndServe(ctx, fmt.Sprintf("%s:%s", addr, port))
+		if err != nil {
+			cancelFunc()
+
+		}
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		sheduler := shed.NewShedilerPars(*logger, prserClient)
-		err := sheduler.SyncOnce()
+		sheduler := shed.NewShedilerPars(logger, parserClient)
+		err := sheduler.SyncOnce(ctx, logger)
 		if err != nil {
 			logger.Error("cant sync vacancy for the first time")
+		} else {
+			logger.Info("all good")
 		}
 		sheduler.RunSync(ctx)
 	}()
@@ -68,12 +78,4 @@ func initLogger() (*zap.SugaredLogger, error) {
 		return nil, fmt.Errorf("cant create logger error :%w", err)
 	}
 	return logger.Sugar(), nil
-
-}
-
-func printErrorAndExit(err error) {
-	if err != nil {
-		fmt.Printf("Error init: %s.\nFor help use -h\n", err)
-		os.Exit(1)
-	}
 }

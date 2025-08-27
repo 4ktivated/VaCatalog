@@ -1,6 +1,5 @@
 package parser
 
-//храним параметры опции запроса в базе
 //"https://api.hh.ru/vacancies"
 // params.Add("text", lang)
 // params.Add("page", page)

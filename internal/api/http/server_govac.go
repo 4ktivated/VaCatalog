@@ -1,7 +1,7 @@
 package http
 
 import (
-	"log"
+	"context"
 	"net/http"
 	"some_app/internal/usecase"
 
@@ -16,11 +16,12 @@ func NewGoVacServer(logger *zap.SugaredLogger) GoVacServer {
 	return GoVacServer{logger: logger}
 }
 
-func (s GoVacServer) ListenAndServe(addr string) {
+func (s GoVacServer) ListenAndServe(ctx context.Context, addr string) error {
 	httpMux := http.NewServeMux()
 
-	httpMux.HandleFunc("/sl", usecase.SuckLie)
+	httpMux.HandleFunc("/sl", usecase.SuckLie) // test
 	httpMux.HandleFunc("/lang", usecase.ApiLang)
 
-	log.Fatal(http.ListenAndServe(addr, httpMux))
+	return http.ListenAndServe(addr, httpMux)
+
 }

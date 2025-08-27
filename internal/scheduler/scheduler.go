@@ -15,12 +15,13 @@ type Scheduler interface {
 }
 
 type ShedulerPars struct {
-	logger      zap.SugaredLogger
+	logger      *zap.SugaredLogger
 	parseClient *parser.ParseClient
 }
 
-func NewShedilerPars(logger zap.SugaredLogger, parseClient *parser.ParseClient) *ShedulerPars {
+func NewShedilerPars(logger *zap.SugaredLogger, parseClient *parser.ParseClient) *ShedulerPars {
 	return &ShedulerPars{
+		logger:      logger,
 		parseClient: parseClient,
 	}
 }
@@ -35,14 +36,14 @@ func (s *ShedulerPars) RunSync(ctx context.Context) {
 		case <-time.After(8 * time.Hour):
 		}
 
-		err := s.SyncOnce()
+		err := s.SyncOnce(ctx, s.logger)
 		if err != nil {
 			s.logger.Error("can't sync stores, changes will be skipped", zap.Error(err))
 		}
 	}
 }
 
-func (s *ShedulerPars) SyncOnce() error {
+func (s *ShedulerPars) SyncOnce(ctx context.Context, logger *zap.SugaredLogger) error {
 	go func() {
 		s.sync()
 	}()
@@ -50,5 +51,5 @@ func (s *ShedulerPars) SyncOnce() error {
 }
 
 func (s *ShedulerPars) sync() {
-	parser.Processing(s.parseClient.GetPool())
+	parser.Processing(s.parseClient.GetPool(), s.logger)
 }
