@@ -1,4 +1,3 @@
-
 #!/bin/sh -e
 CGO_ENABLED=0
 

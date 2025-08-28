@@ -11,6 +11,7 @@ type UrlParam struct {
 
 // hardcode url
 var url = "https://api.hh.ru/vacancies"
+
 // hardcode param
 var param = map[string]string{"text": "php", "page": "1", "per_page": "100"}
 

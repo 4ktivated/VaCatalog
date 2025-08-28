@@ -9,10 +9,6 @@ import (
 	"some_app/internal/repository"
 )
 
-func SuckLie(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "suck lie")
-}
-
 func ApiLang(w http.ResponseWriter, r *http.Request) {
 	//TODO: заменить на норм базу
 	data := repository.Data{}
